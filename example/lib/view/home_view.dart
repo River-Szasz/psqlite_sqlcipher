@@ -1,4 +1,5 @@
 import 'package:example/view/register_view.dart';
+import 'package:example/view/sqlcipher_test_screen.dart';
 import 'package:example/view/user_detail_view.dart';
 import 'package:example/view_model/home_view_model.dart';
 import 'package:flutter/material.dart';
@@ -34,6 +35,15 @@ class _HomeViewState extends State<HomeView> {
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: const Text('PSQLite'),
         actions: [
+          IconButton(
+            onPressed: () {
+              Navigator.of(context).push(MaterialPageRoute(
+                builder: (context) => const SQLCipherTestScreen(),
+              ));
+            },
+            icon: const Icon(Icons.security),
+            tooltip: 'SQLCipher Tests',
+          ),
           IconButton(
               onPressed: () async {
                 await registerUser();

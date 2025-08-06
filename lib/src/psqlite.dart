@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:path/path.dart';
-import 'package:sqflite/sqflite.dart';
+import 'package:sqflite_sqlcipher/sqflite.dart';
 
 import '../psqlite.dart';
 
@@ -21,6 +21,8 @@ class PSQLite {
 
   /// Used to create unit tests. Defaults to false.
   bool _isMocked;
+
+  String? _password;
 
   /// Return the table related in the current database.
   TableDb getTable() => _table;
@@ -50,10 +52,11 @@ class PSQLite {
   void setDbName(String name) => _dbName = name;
 
   /// Constructor for the database.
-  PSQLite({required TableDb table, int version = 1, bool isMocked = false})
+  PSQLite({required TableDb table, int version = 1, bool isMocked = false, String? password})
       : _table = table,
         _version = version,
         _isMocked = isMocked,
+        _password = password,
         _dbName = '${table.getName()}.db';
 
   /// Define a function that inserts a Object into the table.
@@ -86,12 +89,11 @@ class PSQLite {
   Future<Map<String, dynamic>?> getElementBy(String primaryKey) async {
     // Query the table for all The Elements.
     final db = await _getDatabase();
-    final filter = FilterDb(
-        _table.getPrimaryColumn().getName(), primaryKey, ConditionDb.equal);
-    final response =
-        await db.query(_table.getName(), where: filter.getSqlWhere(),
-            // Prevent SQL injection.
-            whereArgs: [primaryKey]);
+    final filter = FilterDb(_table.getPrimaryColumn().getName(), primaryKey, ConditionDb.equal);
+    final response = await db.query(_table.getName(),
+        where: filter.getSqlWhere(),
+        // Prevent SQL injection.
+        whereArgs: [primaryKey]);
     if (response.isEmpty) {
       return null;
     } else {
@@ -114,8 +116,7 @@ class PSQLite {
   /// ```
   /// final allElements = await db.getElements();
   /// ```
-  Future<List<Map<String, dynamic>>> getElements(
-      { List<FilterDb> where = const []}) async {
+  Future<List<Map<String, dynamic>>> getElements({List<FilterDb> where = const []}) async {
     // Query the table for all The Elements.
     final db = await _getDatabase();
     final response = await db.query(_table.getName(),
@@ -138,8 +139,8 @@ class PSQLite {
   /// ```
   Future<void> updateElement(ObjectStored object) async {
     final db = await _getDatabase();
-    final filter = FilterDb(_table.getPrimaryColumn().getName(),
-        object.getPrimaryKey(), ConditionDb.equal);
+    final filter =
+        FilterDb(_table.getPrimaryColumn().getName(), object.getPrimaryKey(), ConditionDb.equal);
     await db.update(
       _table.getName(),
       object.toMap(),
@@ -159,8 +160,8 @@ class PSQLite {
   /// ```
   Future<bool> deleteElement(ObjectStored object) async {
     final db = await _getDatabase();
-    final filter = FilterDb(_table.getPrimaryColumn().getName(),
-        object.getPrimaryKey(), ConditionDb.equal);
+    final filter =
+        FilterDb(_table.getPrimaryColumn().getName(), object.getPrimaryKey(), ConditionDb.equal);
     final numberOfElements = await db.delete(
       _table.getName(),
       where: filter.getSqlWhere(),
@@ -201,9 +202,7 @@ class PSQLite {
 extension PrivatePSQLite on PSQLite {
   /// Build the necessary database using lazy programming.
   Future<Database> _getDatabase() async {
-    _database ??= (_isMocked)
-        ? await _mockedDataBase()
-        : _database = await _initializeDB();
+    _database ??= (_isMocked) ? await _mockedDataBase() : _database = await _initializeDB();
     return _database!;
   }
 
@@ -243,10 +242,10 @@ extension PrivatePSQLite on PSQLite {
 
   /// Create a mocked database.
   Future<Database> _mockedDataBase() async {
-    return await openDatabase(inMemoryDatabasePath, version: 1,
+    return await openDatabase(inMemoryDatabasePath, version: 1, password: _password,
         onCreate: (db, version) async {
-          await db.execute(_table.getCreateDbRequest());
-        });
+      await db.execute(_table.getCreateDbRequest());
+    });
   }
 
   /// Create a real database.
@@ -261,6 +260,7 @@ extension PrivatePSQLite on PSQLite {
         );
       },
       version: _version,
+      password: _password,
     );
   }
 }

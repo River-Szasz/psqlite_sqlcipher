@@ -191,6 +191,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.5.4"
+  sqflite_sqlcipher:
+    dependency: transitive
+    description:
+      name: sqflite_sqlcipher
+      sha256: edf10c7dc18e6bc4e9213c265d26856d303f0b0537174151d28c936b80f80bd0
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.2.1"
   stack_trace:
     dependency: transitive
     description:
@@ -256,5 +264,5 @@ packages:
     source: hosted
     version: "15.0.0"
 sdks:
-  dart: ">=3.5.0 <4.0.0"
-  flutter: ">=3.18.0-18.0.pre.54"
+  dart: ">=3.8.0 <4.0.0"
+  flutter: ">=3.27.0"
